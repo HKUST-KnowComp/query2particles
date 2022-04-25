@@ -543,7 +543,7 @@ def main():
                     'optimizer_state_dict': optimizer.state_dict(),
                 }, general_checkpoint_path)
 
-        if step % save_step == 0 and step > 0:
+        if step % save_step == 0:
             do_test(model, test_iterators, test_summary_writer, total_step, test_easy_answers, test_hard_answers)
             do_test(model, dev_iterators, test_summary_writer, total_step, valid_easy_answers, valid_hard_answers)
 
