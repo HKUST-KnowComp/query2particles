@@ -1,4 +1,4 @@
-CUDA_VISIBLE_DEVICES=2 python run_beta_benchmark.py \
+CUDA_VISIBLE_DEVICES=0 python run_beta_benchmark.py \
 --data_name "NELL-betae" \
 -b 3000 \
 --model_name "v00.02" \
