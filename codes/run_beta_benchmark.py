@@ -507,7 +507,7 @@ def main():
 
         save_step = args.log_steps
         model_name = args.model_name
-        if step % save_step == 0 and step > 0:
+        if step % save_step == 0:
             general_checkpoint_path = "./q2p_logs/" + model_name +"_"+ str(total_step) +"_"+ data_name +".bin"
 
             if torch.cuda.device_count() > 1:
