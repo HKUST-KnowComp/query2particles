@@ -48,12 +48,7 @@ query_name_dict = {('e', ('r',)): '1p',
                    }
 name_query_dict = {value: key for key, value in query_name_dict.items()}
 all_tasks = list(
-    name_query_dict.keys())  # ['1p', '2p',
-
-
-# '3p', '2i', '3i',
-# 'ip', 'pi', '2in', '3in', 'inp', 'pin', 'pni', '2u-DNF',
-# '2u-DM', 'up-DNF', 'up-DM']
+    name_query_dict.keys())
 
 class LabelSmoothingLoss(torch.nn.Module):
     def __init__(self, smoothing: float = 0.1,
@@ -154,19 +149,18 @@ class ParticleCrusher(nn.Module):
     def __init__(self, embedding_size, num_particles):
         super(ParticleCrusher, self).__init__()
 
-        # self.noise_layer = nn.Linear(embedding_size, embedding_size)
+
         self.num_particles = num_particles
 
         self.off_sets = nn.Parameter(torch.zeros([1, num_particles, embedding_size]), requires_grad=True)
-        # self.layer_norm = LayerNorm(embedding_size)
+
 
 
 
     def forward(self, batch_of_embeddings):
         # shape of batch_of_embeddings: [batch_size, embedding_size]
         # the return is a tuple ([batch_size, embedding_size, num_particles], [batch_size, num_particles])
-        # The first return is the batch of particles for each entity, the second is the weights of the particles
-        # Use gaussian kernel to do this
+
 
         batch_size, embedding_size = batch_of_embeddings.shape
 
@@ -182,8 +176,7 @@ class Projection(nn.Module):
 
         self.layer_norm_1 = LayerNorm(embedding_size)
         self.layer_norm_2 = LayerNorm(embedding_size)
-        # self.layer_norm_3 = LayerNorm(embedding_size)
-        # self.layer_norm_4 = LayerNorm(embedding_size)
+
 
         self.embedding_size = embedding_size
 
@@ -191,8 +184,7 @@ class Projection(nn.Module):
 
         self.self_attn = SelfAttention(embedding_size)
 
-        # self.ffn = FFN(embedding_size, dropout)
-        # self.ffn2 = FFN(embedding_size)
+
         self.sigmoid = nn.Sigmoid()
         self.tanh = nn.Tanh()
 
@@ -234,8 +226,6 @@ class Projection(nn.Module):
         projected_particles = self.self_attn(self.dropout(projected_particles))
         projected_particles = self.layer_norm_2(projected_particles)
 
-        # projected_particles = self.ffn(projected_particles)  + projected_particles
-        # projected_particles = self.layer_norm_3(projected_particles)
 
         return projected_particles
 
@@ -376,12 +366,6 @@ class Query2Particles(nn.Module):
                  label_smoothing=0.1):
         super(Query2Particles, self).__init__()
 
-        # entity_emb_layer, num_ent_embeddings, ent_embedding_dim = create_emb_layer(entity_weights, fixed_embeddings)
-        # relation_emb_layer, num_rel_embeddings, rel_embedding_dim = create_emb_layer(relation_weights, fixed_embeddings)
-        #
-        # assert ent_embedding_dim == rel_embedding_dim
-        # assert nentity == num_ent_embeddings
-        # assert nrelation == num_rel_embeddings
 
         self.label_smoothing = label_smoothing
 
@@ -939,8 +923,6 @@ class Query2Particles(nn.Module):
         # [batch_size, num_particles, num_entities]
         all_prediction_scores = self.decoder(particles)
 
-        # [batch_size, num_particles, num_entities]
-        # attention_score = nn.Softmax(dim=1)(all_prediction_scores / math.sqrt(self.entity_dim))
 
         # [batch_size, num_entities]
         prediction_scores, _ =  all_prediction_scores.max(dim=1)
@@ -970,13 +952,11 @@ class Query2Particles(nn.Module):
             label_smoothing = model.module.label_smoothing
 
         prediction_scores = model(batch_queries, qtype)
-        # print(prediction_scores.shape)
-        # print(positive_sample.shape)
+
 
         loss_fct = LabelSmoothingLoss(smoothing=label_smoothing, reduction='none')
         masked_lm_loss = loss_fct(prediction_scores, positive_sample.view(-1))
 
-        # print(masked_lm_loss.shape)
         loss = (masked_lm_loss).mean()
 
         if use_apex:
@@ -1001,10 +981,8 @@ class Query2Particles(nn.Module):
         positive_sample, _, subsampling_weight, batch_queries, query_structures = next(iter)
 
         positive_sample = torch.tensor(positive_sample).cuda()
-        # positive_sample = positive_sample.cuda()
-        # negative_sample = torch.tensor(negative_sample).cuda()
+
         batch_queries = torch.tensor(batch_queries).cuda()
-        # subsampling_weight = torch.tensor(subsampling_weight).cuda()
 
         qtype = query_name_dict[query_structures[0]]
 
@@ -1046,10 +1024,7 @@ class Query2Particles(nn.Module):
         # We force all query structure in a single batch is the same
         qtype = query_name_dict[query_structures[0]]
 
-        # print(positive_sample_placeholder.shape)
-        # print(negative_sample.shape)
 
-        # These are the two sets of answers
         easy_answer = easy_answers[queries_unflatten[0]]
         hard_answer = hard_answers[queries_unflatten[0]]
 
@@ -1159,18 +1134,7 @@ def test_dataloading_new(data_path="../data/FB15k-237-betae"):
     test_batch_size = 1
     embedding_size = 400
     num_p = 2
-    # print("Load pre_trained embeddings")
-    # ent_embedding_path = "../data/transe_batae_fb237_ent.npy"
-    # rel_embedding_path = "../data/transe_batae_fb237_rel.npy"
 
-    # with open(ent_embedding_path, 'rb') as f:
-    # ent_embedding = np.load(f)
-    #
-    # with open(rel_embedding_path, 'rb') as f:
-    # rel_embedding = np.load(f)
-
-    # ent_embedding = np.load(ent_embedding_path, 'r')
-    # rel_embedding = np.load(rel_embedding_path, 'r')
 
     print("Cuda start")
     model = Query2Particles(nentity, nrelation, embedding_size, num_particles=num_p)
@@ -1242,11 +1206,7 @@ def test_dataloading_new(data_path="../data/FB15k-237-betae"):
     for query_structure in train_queries:
         print(query_name_dict[query_structure] + ": " + str(len(train_queries[query_structure])))
 
-    # for query_structure in train_queries:
-    #     print(query_name_dict[query_structure] + ": " + str(len(train_answers[query_structure])))
 
-    # print(train_queries.keys())
-    # print(train_answers.keys())
     train_iterators = {}
 
     print("====== Create Training Iterators  ======")
@@ -1264,17 +1224,6 @@ def test_dataloading_new(data_path="../data/FB15k-237-betae"):
         train_iterators[query_name_dict[query_structure]] = new_iterator
 
         print(query_name_dict[query_structure])
-
-        # positive_sample, negative_sample, subsampling_weight, batch_queries, query_structures = next(new_iterator)
-        # print(positive_sample)
-        # print(negative_sample)
-        # print(subsampling_weight)
-        # print(batch_queries)
-        # print(query_structure)
-        #
-        #
-
-
 
 
         log_of_the_step = model.train_step(model, new_iterator, optimizer, use_apex)
@@ -1307,21 +1256,7 @@ def test_dataloading_new(data_path="../data/FB15k-237-betae"):
         model.eval()
         for negative_sample, queries, queries_unflatten, query_structures in valid_dataloader:
             print(query_name_dict[query_structure])
-            # print(len(valid_dataloader))
-            # print(len(negative_sample))
-            # print(queries)
-            # print(queries_unflatten)
-            # print(query_structures)
 
-            # The keys for the answer sets are
-
-            # print("valid_easy_answers")
-            # for query in queries_unflatten:
-            #     print("size easy", len(valid_easy_answers[query]))
-            #
-            # print("valid_hard_answers")
-            # for query in queries_unflatten:
-            #     print("size hard", len(valid_hard_answers[query]))
 
             log_of_the_step = model.evaluate_step(model,
                                                         negative_sample,
@@ -1350,18 +1285,7 @@ def test_entailment_loading(data_path="../data/FB15k-237-q2p"):
     test_batch_size = 1
     embedding_size = 400
     num_p = 2
-    # print("Load pre_trained embeddings")
-    # ent_embedding_path = "../data/transe_batae_fb237_ent.npy"
-    # rel_embedding_path = "../data/transe_batae_fb237_rel.npy"
 
-    # with open(ent_embedding_path, 'rb') as f:
-    # ent_embedding = np.load(f)
-    #
-    # with open(rel_embedding_path, 'rb') as f:
-    # rel_embedding = np.load(f)
-
-    # ent_embedding = np.load(ent_embedding_path, 'r')
-    # rel_embedding = np.load(rel_embedding_path, 'r')
 
     print("Cuda start")
     model = Query2Particles(nentity, nrelation, embedding_size, num_particles=num_p)
@@ -1369,10 +1293,7 @@ def test_entailment_loading(data_path="../data/FB15k-237-q2p"):
     print("create model")
     model.cuda()
 
-    # if torch.cuda.device_count() > 1:
-    #     # print("Let's use", torch.cuda.device_count(), "GPUs!")
-    #     # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
-    #     model = nn.DataParallel(model)
+
 
     no_decay = ['bias', 'layer_norm', 'embedding', "off_sets"]
     optimizer_grouped_parameters = [
@@ -1439,8 +1360,7 @@ def test_entailment_loading(data_path="../data/FB15k-237-q2p"):
     for query_structure in test_queries:
         print(query_name_dict[query_structure] + ": " + str(len(test_queries[query_structure])))
 
-    # for query_structure in train_queries:
-    #     print(query_name_dict[query_structure] + ": " + str(len(train_answers[query_structure])))
+
 
     print("====== Create Training Iterators  ======")
     train_iterators = {}
@@ -1491,45 +1411,6 @@ def test_entailment_loading(data_path="../data/FB15k-237-q2p"):
 
 
 
-
-    # print(train_queries.keys())
-    # print(train_answers.keys())
-    # train_iterators = {}
-    #
-    # print("====== Create Training Iterators  ======")
-    # model.train()
-    # for query_structure in train_queries:
-    #     tmp_queries = list(train_queries[query_structure])
-    #     tmp_queries = [(query, query_structure) for query in tmp_queries]
-    #     new_iterator = SingledirectionalOneShotIterator(DataLoader(
-    #         TrainDataset(tmp_queries, nentity, nrelation, negative_sample_size, train_answers),
-    #         batch_size=batch_size,
-    #         shuffle=True,
-    #         num_workers=cpu_num,
-    #         collate_fn=TrainDataset.collate_fn
-    #     ))
-    #     train_iterators[query_name_dict[query_structure]] = new_iterator
-    #
-    #
-    #
-    #
-    #     print(query_name_dict[query_structure])
-    #
-    #
-    #
-    #
-    #
-    #
-    #     log_of_the_step = model.train_step(model, new_iterator, optimizer, use_apex)
-    #     print(log_of_the_step)
-    #
-    #     if query_name_dict[query_structure] in ["1p", "2p", "3p", "2i", "3i"]:
-    #         log_of_the_step = model.train_inv_step(model, new_iterator, optimizer, use_apex)
-    #         print(log_of_the_step)
-    #
-    #
-    #     print("======")
-
     print("====== Create Validation Dataloader ======")
 
     for query_structure in valid_queries:
@@ -1550,21 +1431,7 @@ def test_entailment_loading(data_path="../data/FB15k-237-q2p"):
         model.eval()
         for negative_sample, queries, queries_unflatten, query_structures in valid_dataloader:
             print(query_name_dict[query_structure])
-            # print(len(valid_dataloader))
-            # print(len(negative_sample))
-            # print(queries)
-            # print(queries_unflatten)
-            # print(query_structures)
 
-            # The keys for the answer sets are
-
-            # print("valid_easy_answers")
-            # for query in queries_unflatten:
-            #     print("size easy", len(valid_easy_answers[query]))
-            #
-            # print("valid_hard_answers")
-            # for query in queries_unflatten:
-            #     print("size hard", len(valid_hard_answers[query]))
 
             log_of_the_step = model.evaluate_step(model,
                                                         negative_sample,
@@ -1580,8 +1447,7 @@ def test_entailment_loading(data_path="../data/FB15k-237-q2p"):
             break
 
 if __name__ == "__main__":
-    # test_dataloading_new()
-    # test_dataloading_new("../data/FB15k-237-q2b")
-    test_entailment_loading("../data/FB15k-237-q2b")
+    test_dataloading_new()
+
 
 

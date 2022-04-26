@@ -270,9 +270,7 @@ def main():
     # load data first
     max_train_steps = 300000000
     previous_steps = 0
-    # data_name = "FB15k-237-betae"
-    # data_name = "FB15k-betae"
-    # data_name = "NELL-betae"
+
 
     data_name = args.data_name
     data_path = "../data/" + data_name
@@ -287,16 +285,7 @@ def main():
     train_summary_writer = SummaryWriter(train_log_dir)
     test_summary_writer = SummaryWriter(test_log_dir)
 
-    # print("Load pre_trained embeddings")
 
-    # with open("../data/" + args.entity_embeddings, 'rb') as f:
-    #     ent_embedding = np.load(f)
-    #
-    # with open("../data/" + args.relation_embeddings, 'rb') as f:
-    #     rel_embedding = np.load(f)
-
-    # ent_embedding = np.load("../data/" + args.entity_embeddings, 'r')
-    # rel_embedding = np.load("../data/" + args.relation_embeddings, 'r')
 
     model = Query2Particles(nentity,
                             nrelation,
@@ -318,8 +307,6 @@ def main():
         model = nn.DataParallel(model)
 
 
-    # PATH = "logs/20201117-123347"
-    # model.load_state_dict(torch.load(PATH))
 
     model.cuda()
 
@@ -368,24 +355,7 @@ def main():
 
     scheduler = LambdaLR(optimizer, lr_lambda=warmup_lambda)
 
-    # task = "1c.2c.3c.2i.3i.ic.ci.2u.uc"
-    #
-    # tasks = task.split('.')
-    #
-    # all_train_ans = dict()
-    # all_valid_ans = dict()
-    # all_valid_ans_hard = dict()
-    # all_test_ans = dict()
-    # all_test_ans_hard = dict()
-    #
-    # train_tasks = ['1c', '2c', '3c', '2i', '3i']
-    # evaluate_only_tasks = ['ic', 'ci', '2u', 'uc']
-    # supported_tasks = train_tasks + evaluate_only_tasks
-    #
-    # all_train_triples = {}
-    # all_valid_triples = {}
-    # all_test_triples = {}
-    #
+
     batch_size = args.batch_size
     negative_sample_size = args.negative_sample_size
     cpu_num = 4
