@@ -1,4 +1,4 @@
-CUDA_VISIBLE_DEVICES=1 python run_beta_benchmark.py \
+CUDA_VISIBLE_DEVICES=0 python run_beta_benchmark.py \
 --data_name "FB15k-237-betae" \
 -b 8192 \
 --model_name "v00.01" \

@@ -1,4 +1,4 @@
-CUDA_VISIBLE_DEVICES=2 python run_q2b_benchmark.py \
+CUDA_VISIBLE_DEVICES=0 python run_q2b_benchmark.py \
 --data_name "NELL-q2b" \
 -b 1024 \
 --model_name "v00.05" \

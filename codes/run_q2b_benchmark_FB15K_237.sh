@@ -1,4 +1,4 @@
-CUDA_VISIBLE_DEVICES=1 python run_q2b_benchmark.py \
+CUDA_VISIBLE_DEVICES=0 python run_q2b_benchmark.py \
 --data_name "FB15k-237-q2b" \
 -b 2048 \
 --model_name "v00.04" \
